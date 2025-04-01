@@ -19,16 +19,16 @@ import { styled } from '@mui/material/styles';
 
 const StyledDialog = styled(Dialog)(({ theme }) => ({
     '& .MuiDialog-paper': {
-        minWidth: 400,
+        minWidth: 500,
         maxWidth: 600,
-        overflow: 'hidden', // Hide the main dialog overflow
+        overflow: 'hidden',
     },
     '& .MuiDialogContent-root': {
         '&::-webkit-scrollbar': {
-            display: 'none', // Hide scrollbar for WebKit browsers
+            display: 'none', 
         },
-        scrollbarWidth: 'none', // Hide scrollbar for Firefox
-        msOverflowStyle: 'none', // Hide scrollbar for IE/Edge
+        scrollbarWidth: 'none', 
+        msOverflowStyle: 'none', 
     },
 }));
 
@@ -166,8 +166,8 @@ const UserProgress = ({ open, onClose, type, level, streak, totalScore, onScoreU
     );
 
     return (
-        <StyledDialog open={open} onClose={onClose}>
-            <DialogTitle>
+<StyledDialog open={Boolean(type)} onClose={onClose}>
+<DialogTitle>
                 {type === 'level' ? 'Progreso de Nivel' : 'Racha y Recompensas'}
             </DialogTitle>
             <DialogContent>

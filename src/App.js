@@ -42,12 +42,19 @@ function App() {
   const [isDarkMode, setIsDarkMode] = useState(storageService.getThemePreference());
   const [statistics, setStatistics] = useState(storageService.getStatistics());
   const [unlockedAchievements, setUnlockedAchievements] = useState(storageService.getAchievements());
-  const [progressDialog, setProgressDialog] = useState({ open: false, type: null });
+  const [progressDialog, setProgressDialog] = useState(null);
   const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
 
   useEffect(() => {
     setIsDarkMode(storageService.getThemePreference() || prefersDarkMode);
   }, [prefersDarkMode]);
+
+  useEffect(() => {
+    if (progressDialog === null) {
+        // Asegura que no se reabra accidentalmente otro modal
+        setProgressDialog(null);
+    }
+}, [progressDialog]);
 
   const handleScoreUpdate = (points) => {
     setTotalScore(prev => {
@@ -112,14 +119,14 @@ function App() {
     storageService.saveThemePreference(newMode);
   };
 
-  const handleProgressClick = (type) => {
-    // Ensure only one modal opens at a time
-    setProgressDialog({ open: true, type });
-  };
+ const handleProgressClick = (type) => {
+    setProgressDialog(type); // Guarda solo el tipo del modal abierto
+};
 
-  const handleProgressClose = () => {
-    setProgressDialog({ open: false, type: null });
-  };
+const handleProgressClose = () => {
+  setTimeout(() => setProgressDialog(null), 50); // Pequeño delay para evitar re-render inesperado
+};
+
 
   return (
     <ThemeProvider theme={theme}>
@@ -295,15 +302,17 @@ function App() {
           </Box>
         </Container>
       </Box>
-      <UserProgress
-        open={progressDialog.open}
+      {progressDialog && (
+    <UserProgress
+        open={true}
         onClose={handleProgressClose}
-        type={progressDialog.type}
+        type={progressDialog}
         level={level}
         streak={streak}
         totalScore={totalScore}
         onScoreUpdate={handleScoreUpdate}
-      />
+    />
+)}
     </ThemeProvider>
   );
 }
