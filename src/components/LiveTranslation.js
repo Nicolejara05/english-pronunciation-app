@@ -27,6 +27,7 @@ const LiveTranslation = () => {
     const [savedTranslations, setSavedTranslations] = useState([]);
     const [isSpeaking, setIsSpeaking] = useState(false);
     const [currentSpeakingId, setCurrentSpeakingId] = useState(null);
+    const [isTranslating, setIsTranslating] = useState(false);
 
     useEffect(() => {
         // Cargar traducciones guardadas del localStorage
@@ -35,6 +36,19 @@ const LiveTranslation = () => {
             setSavedTranslations(JSON.parse(saved));
         }
     }, []);
+
+    // Nuevo efecto para manejar la traducción automática
+    useEffect(() => {
+        const delayDebounce = setTimeout(() => {
+            if (inputText.trim()) {
+                handleTranslation(inputText);
+            } else {
+                setTranslatedText('');
+            }
+        }, 500); // Esperar 500ms después de que el usuario deje de escribir
+
+        return () => clearTimeout(delayDebounce);
+    }, [inputText]);
 
     const startListening = () => {
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
@@ -52,7 +66,6 @@ const LiveTranslation = () => {
             recognition.onresult = (event) => {
                 const transcript = event.results[0][0].transcript;
                 setInputText(transcript);
-                handleTranslation(transcript);
             };
 
             recognition.onerror = (event) => {
@@ -69,6 +82,9 @@ const LiveTranslation = () => {
     };
 
     const handleTranslation = async (text) => {
+        if (!text.trim() || isTranslating) return;
+
+        setIsTranslating(true);
         try {
             const encodedText = encodeURIComponent(text);
             const response = await fetch(
@@ -89,19 +105,14 @@ const LiveTranslation = () => {
         } catch (err) {
             console.error('Error:', err);
             setTranslatedText('Error al traducir. Por favor, intenta de nuevo.');
-        }
-    };
-
-    const handleTextSubmit = () => {
-        if (inputText.trim()) {
-            handleTranslation(inputText);
+        } finally {
+            setIsTranslating(false);
         }
     };
 
     const handleKeyPress = (event) => {
         if (event.key === 'Enter' && !event.shiftKey) {
             event.preventDefault();
-            handleTextSubmit();
         }
     };
 
@@ -173,7 +184,7 @@ const LiveTranslation = () => {
 
                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                             {/* Input de texto */}
-                            <Box sx={{ position: 'relative' }}>
+                            <Box sx={{ position: 'relative', display: 'flex' }}>
                                 <TextField
                                     fullWidth
                                     multiline
@@ -184,8 +195,9 @@ const LiveTranslation = () => {
                                     label={inputText ? `Texto en español (${inputText.length}/500)` : ''}
                                     value={inputText}
                                     onChange={(e) => {
-                                        if (e.target.value.length <= 500) {
-                                            setInputText(e.target.value);
+                                        const newText = e.target.value;
+                                        if (newText.length <= 500) {
+                                            setInputText(newText);
                                         }
                                     }}
                                     onKeyPress={handleKeyPress}
@@ -194,41 +206,38 @@ const LiveTranslation = () => {
                                         style: { paddingRight: '120px' }
                                     }}
                                     sx={{
-                                        '& .MuiOutlinedInput-root': {
-                                            '& fieldset': {
-                                                borderRadius: '12px',
+                                        flex: 1,
+                                        '& .MuiInputBase-root': {
+                                            '&::-webkit-scrollbar': {
+                                                display: 'none'
                                             },
+                                            scrollbarWidth: 'none',
+                                            msOverflowStyle: 'none',
+                                            maxHeight: '100%'
                                         },
-                                        '& .MuiInputLabel-root': {
-                                            paddingRight: '100px',
+                                        '& textarea': {
+                                            '&::-webkit-scrollbar': {
+                                                display: 'none'
+                                            },
+                                            scrollbarWidth: 'none',
+                                            msOverflowStyle: 'none',
                                         }
                                     }}
                                 />
                                 <Box sx={{
                                     position: 'absolute',
                                     right: 12,
-                                    top: 12,
+                                    top: 0,
+                                    bottom: 0,
                                     display: 'flex',
+                                    alignItems: 'center',
                                     gap: 1,
                                     backgroundColor: 'transparent',
+                                    pointerEvents: 'none',
+                                    '& > *': {
+                                        pointerEvents: 'auto'
+                                    }
                                 }}>
-                                    <IconButton
-                                        color="primary"
-                                        onClick={handleTextSubmit}
-                                        disabled={!inputText.trim()}
-                                        size="small"
-                                        sx={{
-                                            backgroundColor: 'background.paper',
-                                            boxShadow: 1,
-                                            '&:hover': {
-                                                backgroundColor: 'primary.main',
-                                                color: 'primary.contrastText',
-                                            },
-                                            transition: 'all 0.2s',
-                                        }}
-                                    >
-                                        <SendIcon />
-                                    </IconButton>
                                     <IconButton
                                         color="secondary"
                                         onClick={startListening}

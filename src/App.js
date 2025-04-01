@@ -113,6 +113,7 @@ function App() {
   };
 
   const handleProgressClick = (type) => {
+    // Ensure only one modal opens at a time
     setProgressDialog({ open: true, type });
   };
 

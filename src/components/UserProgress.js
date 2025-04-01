@@ -21,6 +21,14 @@ const StyledDialog = styled(Dialog)(({ theme }) => ({
     '& .MuiDialog-paper': {
         minWidth: 400,
         maxWidth: 600,
+        overflow: 'hidden', // Hide the main dialog overflow
+    },
+    '& .MuiDialogContent-root': {
+        '&::-webkit-scrollbar': {
+            display: 'none', // Hide scrollbar for WebKit browsers
+        },
+        scrollbarWidth: 'none', // Hide scrollbar for Firefox
+        msOverflowStyle: 'none', // Hide scrollbar for IE/Edge
     },
 }));
 
@@ -172,4 +180,4 @@ const UserProgress = ({ open, onClose, type, level, streak, totalScore, onScoreU
     );
 };
 
-export default UserProgress; 
+export default UserProgress;

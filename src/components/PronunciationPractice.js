@@ -14,6 +14,7 @@ import {
     Tooltip,
     ToggleButton,
     ToggleButtonGroup,
+    Paper,
 } from '@mui/material';
 import MicIcon from '@mui/icons-material/Mic';
 import VolumeUpIcon from '@mui/icons-material/VolumeUp';
@@ -142,15 +143,28 @@ const PronunciationPractice = ({ onScoreUpdate }) => {
     if (!currentWord) return null;
 
     return (
-        <Box sx={{ width: '100%', maxWidth: 1200, mx: 'auto', p: 2 }}>
-            <Card elevation={3}>
-                <CardContent>
-                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, mb: 3 }}>
+        <Box sx={{ width: '100%', maxWidth: 800, mx: 'auto' }}>
+            <Card elevation={2} sx={{ borderRadius: 3, overflow: 'hidden' }}>
+                <CardContent sx={{ p: 0 }}>
+                    {/* Header with controls */}
+                    <Paper 
+                        elevation={0} 
+                        sx={{ 
+                            p: 2, 
+                            display: 'flex', 
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            borderBottom: '1px solid',
+                            borderColor: 'divider',
+                            bgcolor: 'background.paper'
+                        }}
+                    >
                         <ToggleButtonGroup
                             value={contentType}
                             exclusive
                             onChange={handleContentTypeChange}
                             aria-label="tipo de contenido"
+                            size="small"
                         >
                             <ToggleButton value="vocabulary" aria-label="vocabulario">
                                 Vocabulario
@@ -160,53 +174,46 @@ const PronunciationPractice = ({ onScoreUpdate }) => {
                             </ToggleButton>
                         </ToggleButtonGroup>
 
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                            <Typography variant="h6" color="primary">
+                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                            <Typography variant="body2" color="text.secondary" sx={{ mr: 1 }}>
                                 Nivel:
                             </Typography>
                             <Select
                                 value={level}
                                 onChange={handleLevelChange}
                                 size="small"
+                                variant="outlined"
                             >
                                 <MenuItem value="beginner">Principiante</MenuItem>
                                 <MenuItem value="intermediate">Intermedio</MenuItem>
                                 <MenuItem value="advanced">Avanzado</MenuItem>
                             </Select>
                         </Box>
-                    </Box>
+                    </Paper>
 
-                    <Typography variant="h4" gutterBottom align="center">
-                        {contentType === 'vocabulary' ? 'Pronuncia esta palabra' : 'Pronuncia esta frase'}
-                    </Typography>
+                    {/* Main content */}
+                    <Box sx={{ p: 4, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                        <Typography variant="h2" align="center" sx={{ mb: 3, fontWeight: 'bold' }}>
+                            {currentWord.word}
+                        </Typography>
 
-                    <Typography variant="h2" align="center" sx={{ my: 4 }}>
-                        {currentWord.word}
-                    </Typography>
-
-                    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 2, mb: 3 }}>
-                        <Tooltip title="Escuchar pronunciación">
-                            <IconButton onClick={playAudio} color="primary" size="large">
+                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                            <IconButton onClick={playAudio} color="primary" size="large" sx={{ mr: 1 }}>
                                 <VolumeUpIcon />
                             </IconButton>
-                        </Tooltip>
-                        <Typography variant="h6" color="text.secondary">
-                            [{currentWord.phonetic}]
+                            <Typography variant="body1" color="text.secondary">
+                                [{currentWord.phonetic}]
+                            </Typography>
+                        </Box>
+
+                        <Typography variant="body1" align="center" sx={{ mb: 3, color: 'text.secondary', fontStyle: 'italic' }}>
+                            {currentWord.example}
                         </Typography>
-                    </Box>
 
-                    <Box sx={{ mb: 4, p: 2, bgcolor: 'background.paper', borderRadius: 2, border: 1, borderColor: 'divider' }}>
-                        <Typography variant="body1" align="center" color="text.secondary">
-                            <InfoIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
-                            Ejemplo: {currentWord.example}
+                        <Typography variant="body1" align="center" sx={{ mb: 4, color: 'text.secondary' }}>
+                            {currentWord.translation}
                         </Typography>
-                    </Box>
 
-                    <Typography variant="h5" align="center" sx={{ mb: 4, color: 'text.secondary' }}>
-                        Traducción: {currentWord.translation}
-                    </Typography>
-
-                    <Box sx={{ display: 'flex', justifyContent: 'center', my: 2 }}>
                         <Button
                             variant="contained"
                             color="primary"
@@ -214,49 +221,61 @@ const PronunciationPractice = ({ onScoreUpdate }) => {
                             onClick={startListening}
                             disabled={isListening}
                             size="large"
+                            sx={{ 
+                                borderRadius: 28,
+                                px: 4,
+                                py: 1,
+                                boxShadow: 3,
+                                transition: 'transform 0.2s',
+                                '&:hover': {
+                                    transform: 'scale(1.05)'
+                                }
+                            }}
                         >
-                            {isListening ? 'Escuchando...' : 'Empezar a hablar'}
+                            {isListening ? 'Escuchando...' : 'Hablar'}
                         </Button>
+
+                        {isListening && (
+                            <CircularProgress sx={{ mt: 2 }} />
+                        )}
+
+                        {feedback && (
+                            <Alert
+                                severity={feedback.type}
+                                sx={{ mt: 3, width: '100%' }}
+                                variant="filled"
+                            >
+                                {feedback.message}
+                            </Alert>
+                        )}
+
+                        {userSpeech && (
+                            <Typography variant="body2" align="center" sx={{ mt: 2, color: 'text.secondary' }}>
+                                Te escuché decir: "{userSpeech}"
+                            </Typography>
+                        )}
                     </Box>
 
-                    {isListening && (
-                        <Box sx={{ display: 'flex', justifyContent: 'center', my: 2 }}>
-                            <CircularProgress />
+                    {/* Progress bar */}
+                    <Box sx={{ px: 4, pb: 3 }}>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                            <Typography variant="caption" color="text.secondary">
+                                Palabra {currentWordIndex + 1} de {content[contentType][level].length}
+                            </Typography>
+                            <Typography variant="caption" color="primary">
+                                {Math.round((currentWordIndex / content[contentType][level].length) * 100)}%
+                            </Typography>
                         </Box>
-                    )}
-
-                    {feedback && (
-                        <Alert
-                            severity={feedback.type}
-                            sx={{ mt: 2 }}
-                            variant="filled"
-                        >
-                            {feedback.message}
-                        </Alert>
-                    )}
-
-                    {userSpeech && (
-                        <Typography variant="body1" align="center" sx={{ mt: 2 }}>
-                            Te escuché decir: {userSpeech}
-                        </Typography>
-                    )}
-
-                    <Box sx={{ mt: 4 }}>
-                        <Typography variant="body2" align="center" gutterBottom>
-                            Progreso del nivel ({currentWordIndex + 1}/{content[contentType][level].length})
-                        </Typography>
                         <LinearProgress
                             variant="determinate"
                             value={(currentWordIndex / content[contentType][level].length) * 100}
-                            sx={{ height: 10, borderRadius: 5, margin: 3 }}
+                            sx={{ height: 6, borderRadius: 3 }}
                         />
                     </Box>
-
-
                 </CardContent>
             </Card>
         </Box>
     );
 };
 
-export default PronunciationPractice; 
+export default PronunciationPractice;

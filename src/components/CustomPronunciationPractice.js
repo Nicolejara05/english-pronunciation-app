@@ -43,8 +43,8 @@ const CustomPronunciationPractice = () => {
             const recognition = new SpeechRecognition();
 
             recognition.lang = 'en-US';
-            recognition.continuous = false;
-            recognition.interimResults = false;
+            recognition.continuous = true;
+            recognition.interimResults = true;
 
             recognition.onstart = () => {
                 setIsListening(true);
@@ -52,10 +52,10 @@ const CustomPronunciationPractice = () => {
             };
 
             recognition.onresult = (event) => {
-                const transcript = event.results[0][0].transcript;
+                const transcript = Array.from(event.results)
+                    .map(result => result[0].transcript)
+                    .join('');
                 setSpokenText(transcript);
-                setIsListening(false);
-                checkPronunciation(transcript);
             };
 
             recognition.onerror = (event) => {
@@ -71,6 +71,16 @@ const CustomPronunciationPractice = () => {
             recognition.start();
         } else {
             setError('Tu navegador no soporta el reconocimiento de voz.');
+        }
+    };
+
+    const stopListening = () => {
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.webkitSpeechRecognition || window.SpeechRecognition;
+            const recognition = new SpeechRecognition();
+            recognition.stop();
+            setIsListening(false);
+            checkPronunciation(spokenText);
         }
     };
 
@@ -165,7 +175,7 @@ const CustomPronunciationPractice = () => {
                         </Typography>
 
                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                            <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
+                            <Box sx={{ display: 'flex', gap: 2, alignItems: 'stretch' }}>
                                 <TextField
                                     fullWidth
                                     multiline
@@ -176,22 +186,35 @@ const CustomPronunciationPractice = () => {
                                     onChange={(e) => setCustomText(e.target.value)}
                                     onKeyPress={handleKeyPress}
                                     disabled={isListening}
+                                    sx={{
+                                        '& .MuiInputBase-root': {
+                                            '&::-webkit-scrollbar': {
+                                                display: 'none'
+                                            },
+                                            scrollbarWidth: 'none',
+                                            msOverflowStyle: 'none',
+                                            maxHeight: '100%'
+                                        },
+                                        '& textarea': {
+                                            '&::-webkit-scrollbar': {
+                                                display: 'none'
+                                            },
+                                            scrollbarWidth: 'none',
+                                            msOverflowStyle: 'none'
+                                        }
+                                    }}
                                 />
-                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                                    <Button
-                                        variant="contained"
-                                        color="primary"
-                                        onClick={handleTextSubmit}
-                                        disabled={!customText.trim() || isListening}
-                                        sx={{ minWidth: 'auto', p: 1 }}
-                                    >
-                                        <SendIcon />
-                                    </Button>
+                                <Box sx={{ 
+                                    display: 'flex', 
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    alignSelf: 'stretch'
+                                }}>
                                     <Button
                                         variant="contained"
                                         color="secondary"
-                                        onClick={startListening}
-                                        disabled={isListening || !customText.trim()}
+                                        onClick={isListening ? stopListening : startListening}
+                                        disabled={!customText.trim()}
                                         sx={{ minWidth: 'auto', p: 1 }}
                                     >
                                         <MicIcon />
@@ -249,7 +272,23 @@ const CustomPronunciationPractice = () => {
                                 Historial de Prácticas
                             </Typography>
                         </Box>
-                        <Box sx={{ flex: 1, overflow: 'auto', p: 1 }}>
+                        <Box sx={{ 
+                            flex: 1, 
+                            overflow: 'auto', 
+                            p: 1,
+                            '&::-webkit-scrollbar': {
+                                display: 'none'
+                            },
+                            scrollbarWidth: 'none',
+                            msOverflowStyle: 'none',
+                            '& *::-webkit-scrollbar': {
+                                display: 'none'
+                            },
+                            '& *': {
+                                scrollbarWidth: 'none',
+                                msOverflowStyle: 'none'
+                            }
+                        }}>
                             {savedPractices.length === 0 ? (
                                 <Box sx={{ p: 2, textAlign: 'center' }}>
                                     <Typography variant="body2" color="text.secondary">

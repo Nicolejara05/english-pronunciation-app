@@ -22,6 +22,7 @@ import VolumeUpIcon from '@mui/icons-material/VolumeUp';
 import DeleteIcon from '@mui/icons-material/Delete';
 import SendIcon from '@mui/icons-material/Send';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
+import HistoryIcon from '@mui/icons-material/History';
 
 const PersonalPronunciationPractice = () => {
     const [customText, setCustomText] = useState('');
@@ -49,8 +50,8 @@ const PersonalPronunciationPractice = () => {
             const recognition = new SpeechRecognition();
 
             recognition.lang = 'en-US';
-            recognition.continuous = false;
-            recognition.interimResults = false;
+            recognition.continuous = true;
+            recognition.interimResults = true;
 
             recognition.onstart = () => {
                 setIsListening(true);
@@ -59,10 +60,10 @@ const PersonalPronunciationPractice = () => {
             };
 
             recognition.onresult = (event) => {
-                const transcript = event.results[0][0].transcript;
+                const transcript = Array.from(event.results)
+                    .map(result => result[0].transcript)
+                    .join('');
                 setSpokenText(transcript);
-                setIsListening(false);
-                analyzePronunciation(transcript);
             };
 
             recognition.onerror = (event) => {
@@ -81,20 +82,41 @@ const PersonalPronunciationPractice = () => {
         }
     };
 
+    const stopListening = () => {
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.webkitSpeechRecognition || window.SpeechRecognition;
+            const recognition = new SpeechRecognition();
+            recognition.stop();
+            setIsListening(false);
+            analyzePronunciation(spokenText);
+        }
+    };
+
     const analyzePronunciation = async (spokenText) => {
         setIsProcessing(true);
         setError(null);
 
         try {
-            const originalWords = customText.toLowerCase().split(' ');
-            const spokenWords = spokenText.toLowerCase().split(' ');
+            // Limpiar el texto de signos de puntuación y símbolos especiales
+            const cleanText = (text) => {
+                return text.toLowerCase()
+                    .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?¿¡!""]/g, '')
+                    .replace(/\s+/g, ' ')
+                    .trim();
+            };
 
-            // Identificar palabras mal pronunciadas
-            const mispronounced = originalWords.filter(word => !spokenWords.includes(word));
+            const cleanOriginalText = cleanText(customText);
+            const cleanSpokenText = cleanText(spokenText);
+
+            const originalWords = cleanOriginalText.split(' ');
+            const spokenWords = cleanSpokenText.split(' ');
+
+            // Identificar palabras mal pronunciadas (sin duplicados)
+            const mispronounced = [...new Set(originalWords.filter(word => !spokenWords.includes(word)))];
             setMispronouncedWords(mispronounced);
 
             // Calcular similitud general
-            const similarity = calculateSimilarity(spokenText.toLowerCase(), customText.toLowerCase());
+            const similarity = calculateSimilarity(cleanSpokenText, cleanOriginalText);
             const feedback = getFeedback(similarity);
 
             const practiceItem = {
@@ -121,10 +143,10 @@ const PersonalPronunciationPractice = () => {
     };
 
     const calculateSimilarity = (str1, str2) => {
-        const words1 = str1.split(' ');
-        const words2 = str2.split(' ');
+        const words1 = str1.split(' ').filter(word => word.length > 0);
+        const words2 = str2.split(' ').filter(word => word.length > 0);
         const commonWords = words1.filter(word => words2.includes(word));
-        return commonWords.length / Math.max(words1.length, words2.length);
+        return words1.length === 0 || words2.length === 0 ? 0 : commonWords.length / Math.max(words1.length, words2.length);
     };
 
     const getFeedback = (similarity) => {
@@ -180,100 +202,119 @@ const PersonalPronunciationPractice = () => {
                 <Card elevation={3}>
                     <CardContent>
                         <Typography variant="h4" gutterBottom align="center" sx={{ mb: 4 }}>
-                            Práctica de Pronunciación Personalizada
+                            Práctica Personalizada
                         </Typography>
 
-                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                            <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                            {/* Input de texto */}
+                            <Box sx={{ position: 'relative', display: 'flex' }}>
                                 <TextField
                                     fullWidth
                                     multiline
-                                    rows={3}
+                                    minRows={2}
                                     variant="outlined"
                                     placeholder="Escribe el texto en inglés que quieres practicar..."
                                     value={customText}
                                     onChange={(e) => setCustomText(e.target.value)}
                                     onKeyPress={handleKeyPress}
                                     disabled={isListening}
+                                    inputProps={{
+                                        style: { paddingRight: '60px' }
+                                    }}
+                                    sx={{
+                                        flex: 1,
+                                        '& .MuiInputBase-root': {
+                                            '&::-webkit-scrollbar': {
+                                                display: 'none'
+                                            },
+                                            scrollbarWidth: 'none',
+                                            msOverflowStyle: 'none',
+                                            maxHeight: 'none'
+                                        },
+                                        '& textarea': {
+                                            '&::-webkit-scrollbar': {
+                                                display: 'none'
+                                            },
+                                            scrollbarWidth: 'none',
+                                            msOverflowStyle: 'none',
+                                        }
+                                    }}
                                 />
-                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                                    <Button
-                                        variant="contained"
-                                        color="primary"
-                                        onClick={handleTextSubmit}
-                                        disabled={!customText.trim() || isListening}
-                                        sx={{ minWidth: 'auto', p: 1 }}
-                                    >
-                                        <SendIcon />
-                                    </Button>
-                                    <Button
-                                        variant="contained"
+                                <Box sx={{
+                                    position: 'absolute',
+                                    right: 12,
+                                    top: 0,
+                                    bottom: 0,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 1,
+                                    backgroundColor: 'transparent',
+                                    pointerEvents: 'none',
+                                    '& > *': {
+                                        pointerEvents: 'auto'
+                                    }
+                                }}>
+                                    <IconButton
                                         color="secondary"
-                                        onClick={startListening}
-                                        disabled={isListening || !customText.trim()}
-                                        sx={{ minWidth: 'auto', p: 1 }}
+                                        onClick={isListening ? stopListening : startListening}
+                                        disabled={!customText.trim()}
+                                        size="small"
+                                        sx={{
+                                            backgroundColor: 'background.paper',
+                                            boxShadow: 1,
+                                            '&:hover': {
+                                                backgroundColor: 'secondary.main',
+                                                color: 'secondary.contrastText',
+                                            },
+                                            transition: 'all 0.2s',
+                                            ...(isListening && {
+                                                animation: 'pulse 1.5s infinite',
+                                                '@keyframes pulse': {
+                                                    '0%': {
+                                                        transform: 'scale(1)',
+                                                        boxShadow: '0 0 0 0 rgba(156, 39, 176, 0.4)',
+                                                    },
+                                                    '70%': {
+                                                        transform: 'scale(1.1)',
+                                                        boxShadow: '0 0 0 10px rgba(156, 39, 176, 0)',
+                                                    },
+                                                    '100%': {
+                                                        transform: 'scale(1)',
+                                                        boxShadow: '0 0 0 0 rgba(156, 39, 176, 0)',
+                                                    },
+                                                },
+                                            }),
+                                        }}
                                     >
                                         <MicIcon />
-                                    </Button>
+                                    </IconButton>
                                 </Box>
                             </Box>
 
-                            {isListening && (
-                                <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-                                    <CircularProgress />
-                                </Box>
-                            )}
-
-                            {error && (
-                                <Alert severity="error">
-                                    {error}
-                                </Alert>
-                            )}
-
-                            {spokenText && (
-                                <Paper
-                                    elevation={1}
-                                    sx={{
-                                        p: 2,
-                                        bgcolor: 'background.paper',
-                                        border: 1,
-                                        borderColor: 'divider',
-                                        '&:hover': {
-                                            bgcolor: 'action.hover',
-                                            transition: 'background-color 0.2s'
-                                        }
-                                    }}
-                                >
-                                    <Typography variant="subtitle1" gutterBottom>
-                                        Lo que dijiste:
-                                    </Typography>
-                                    <Typography variant="body1">{spokenText}</Typography>
-                                </Paper>
-                            )}
-
+                            {/* Resultado y Feedback */}
                             {showFeedback && currentPractice && (
                                 <Paper
-                                    elevation={1}
+                                    elevation={2}
                                     sx={{
-                                        p: 2,
+                                        p: 3,
                                         bgcolor: 'primary.main',
                                         color: 'primary.contrastText',
-                                        '&:hover': {
-                                            bgcolor: 'primary.dark',
-                                            transition: 'background-color 0.2s'
-                                        }
+                                        position: 'relative',
+                                        minHeight: '100px'
                                     }}
                                 >
-                                    <Typography variant="subtitle1" gutterBottom>
-                                        Feedback:
+                                    <Typography variant="h6" gutterBottom>
+                                        Tu pronunciación:
                                     </Typography>
                                     <Typography variant="body1" sx={{ mb: 2 }}>
+                                        {spokenText}
+                                    </Typography>
+                                    <Typography variant="h6" color={currentPractice.feedback.color}>
                                         {currentPractice.feedback.text}
                                     </Typography>
-
                                     {mispronouncedWords.length > 0 && (
-                                        <>
-                                            <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                                        <Box sx={{ mt: 2 }}>
+                                            <Typography variant="subtitle2" gutterBottom>
                                                 Palabras a practicar:
                                             </Typography>
                                             <Stack direction="row" spacing={1} flexWrap="wrap" gap={1}>
@@ -284,6 +325,7 @@ const PersonalPronunciationPractice = () => {
                                                         onClick={() => speakText(word)}
                                                         sx={{
                                                             bgcolor: 'rgba(255, 255, 255, 0.1)',
+                                                            color: 'primary.contrastText',
                                                             '&:hover': {
                                                                 bgcolor: 'rgba(255, 255, 255, 0.2)',
                                                             }
@@ -291,33 +333,59 @@ const PersonalPronunciationPractice = () => {
                                                     />
                                                 ))}
                                             </Stack>
-                                        </>
+                                        </Box>
                                     )}
+                                    <Box sx={{
+                                        position: 'absolute',
+                                        top: 16,
+                                        right: 16,
+                                        display: 'flex',
+                                        gap: 1
+                                    }}>
+                                        <IconButton
+                                            onClick={() => speakText(customText)}
+                                            sx={{ color: 'primary.contrastText' }}
+                                        >
+                                            <VolumeUpIcon />
+                                        </IconButton>
+                                    </Box>
                                 </Paper>
-                            )}
-
-                            {isProcessing && (
-                                <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-                                    <CircularProgress />
-                                </Box>
                             )}
                         </Box>
                     </CardContent>
                 </Card>
             </Box>
 
-            {/* Panel de historial */}
-            <Card elevation={3} sx={{ flex: 1 }}>
-                <CardContent sx={{ p: 0, height: '100%', display: 'flex', flexDirection: 'column' }}>
-                    <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
-                        <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            Historial de Prácticas
+            {/* Panel de historial de práctica */}
+            <Card elevation={3} sx={{ flex: 1, maxHeight: 'calc(100vh - 100px)', display: 'flex', flexDirection: 'column' }}>
+                <CardContent sx={{ p: 0, display: 'flex', flexDirection: 'column', height: '100%' }}>
+                    <Box sx={{ p: 3, borderBottom: 1, borderColor: 'divider' }}>
+                        <Typography variant="h5" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <HistoryIcon color="primary" />
+                            Historial de Práctica
                         </Typography>
                     </Box>
-                    <Box sx={{ flex: 1, overflow: 'auto', p: 1 }}>
+                    <Box sx={{
+                        flex: 1,
+                        overflow: 'auto',
+                        '&::-webkit-scrollbar': {
+                            width: '8px',
+                        },
+                        '&::-webkit-scrollbar-track': {
+                            background: 'rgba(0,0,0,0.1)',
+                            borderRadius: '4px',
+                        },
+                        '&::-webkit-scrollbar-thumb': {
+                            background: 'rgba(0,0,0,0.2)',
+                            borderRadius: '4px',
+                            '&:hover': {
+                                background: 'rgba(0,0,0,0.3)',
+                            },
+                        },
+                    }}>
                         {practiceHistory.length === 0 ? (
-                            <Box sx={{ p: 2, textAlign: 'center' }}>
-                                <Typography variant="body2" color="text.secondary">
+                            <Box sx={{ p: 3, textAlign: 'center' }}>
+                                <Typography variant="body1" color="text.secondary">
                                     No hay prácticas guardadas
                                 </Typography>
                             </Box>
@@ -329,43 +397,46 @@ const PersonalPronunciationPractice = () => {
                                             sx={{
                                                 flexDirection: 'column',
                                                 alignItems: 'flex-start',
-                                                gap: 1,
+                                                py: 2,
+                                                px: 3,
                                                 '&:hover': {
                                                     bgcolor: 'action.hover',
                                                     borderRadius: 1
                                                 }
                                             }}
                                         >
-                                            <Box sx={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                                                <Box sx={{ flex: 1 }}>
-                                                    <Typography variant="body1" color="primary" sx={{ fontWeight: 'medium' }}>
-                                                        {item.original}
-                                                    </Typography>
-                                                    <Typography variant="caption" color="text.secondary">
-                                                        {formatDate(item.timestamp)}
-                                                    </Typography>
-                                                </Box>
+                                            <Box sx={{
+                                                width: '100%',
+                                                display: 'flex',
+                                                justifyContent: 'space-between',
+                                                mb: 1
+                                            }}>
+                                                <Typography variant="caption" color="text.secondary">
+                                                    {formatDate(item.timestamp)}
+                                                </Typography>
                                                 <Box>
                                                     <IconButton
                                                         size="small"
                                                         onClick={() => speakText(item.original)}
-                                                        sx={{ color: 'primary.main', mr: 1 }}
+                                                        sx={{ mr: 1 }}
+                                                        title="Escuchar texto original"
                                                     >
                                                         <VolumeUpIcon />
                                                     </IconButton>
                                                     <IconButton
                                                         size="small"
                                                         onClick={() => deletePractice(index)}
-                                                        sx={{ color: 'error.main' }}
+                                                        color="error"
+                                                        title="Eliminar práctica"
                                                     >
                                                         <DeleteIcon />
                                                     </IconButton>
                                                 </Box>
                                             </Box>
-                                            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                                                {item.spoken}
+                                            <Typography variant="body1" color="text.primary" sx={{ mb: 1 }}>
+                                                {item.original}
                                             </Typography>
-                                            <Typography variant="body2" color={item.feedback.color} sx={{ mt: 0.5 }}>
+                                            <Typography variant="body2" color={item.feedback.color}>
                                                 {item.feedback.text}
                                             </Typography>
                                             {item.mispronouncedWords.length > 0 && (
@@ -376,14 +447,14 @@ const PersonalPronunciationPractice = () => {
                                                             label={word}
                                                             onClick={() => speakText(word)}
                                                             size="small"
+                                                            color="primary"
+                                                            variant="outlined"
                                                         />
                                                     ))}
                                                 </Stack>
                                             )}
                                         </ListItem>
-                                        {index < practiceHistory.length - 1 && (
-                                            <Divider sx={{ my: 1 }} />
-                                        )}
+                                        {index < practiceHistory.length - 1 && <Divider />}
                                     </React.Fragment>
                                 ))}
                             </List>
@@ -395,4 +466,4 @@ const PersonalPronunciationPractice = () => {
     );
 };
 
-export default PersonalPronunciationPractice; 
+export default PersonalPronunciationPractice;
