@@ -1,70 +1,58 @@
-# Getting Started with Create React App
+# English Pronunciation App
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Aplicación web interactiva que ayuda a los usuarios a mejorar su pronunciación en inglés mediante reconocimiento de voz y ejemplos auditivos generados con texto a voz.
 
-## Available Scripts
+## ✨ Características
 
-In the project directory, you can run:
+- 🎙️ Grabación y análisis de la pronunciación del usuario.
+- 🔊 Reproducción de ejemplos nativos usando SpeechSynthesis.
+- ✅ Comparación en tiempo real entre lo dicho y la palabra objetivo.
+- 📚 Lista de palabras para practicar con un solo clic.
+- 💡 Retroalimentación clara para saber si la pronunciación fue correcta.
 
-### `npm start`
+## 🛠️ Tecnologías Utilizadas
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+- [React](https://reactjs.org/)
+- [TypeScript](https://www.typescriptlang.org/)
+- [Vite](https://vitejs.dev/)
+- [Tailwind CSS](https://tailwindcss.com/)
+- [Web Speech API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Speech_API)
+- [SpeechRecognition](https://developer.mozilla.org/en-US/docs/Web/API/SpeechRecognition)
+- [SpeechSynthesis](https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesis)
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## 📌 Notas
+- Funciona mejor en navegadores basados en Chromium (Chrome, Edge).
+- Asegúrate de dar permisos de micrófono para el uso correcto.
 
-### `npm test`
+## 🚀 Instalación y Ejecución
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+1. **Clona el repositorio:**
 
-### `npm run build`
+   ```bash
+   git clone https://github.com/Nicolejara05/english-pronunciation-app.git
+   cd english-pronunciation-app
+   ```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+2. **Instala las dependencias:**
+   ```bash
+    npm install
+    # o
+    yarn install
+   ```
+  
+3. **Ejecuta la aplicación en modo desarrollo:**
+    ```bash
+    npm start
+    # o
+    yarn start
+    ```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+4. **Abre tu navegador y visita:**
+    ```bash
+    http://localhost:3000
+    ```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+## 📸 Capturas de Pantalla
+![image](https://github.com/user-attachments/assets/122f6bbc-5a94-43e1-a893-4f2e159d409f)
+![image](https://github.com/user-attachments/assets/169cc642-8f42-4446-b3d6-e90d5fb5ab1a)
+![image](https://github.com/user-attachments/assets/f2473d78-9276-467f-86be-9770a69558a0)
